@@ -1,0 +1,21 @@
+# ============================================================================
+# avoid-cloud-cost — MINIMAL config (zero input)
+# ============================================================================
+# This is the smallest valid config. Its mere presence under skill-config/ at a
+# repo root OPTS THE REPO IN to the Design-for-Cost (FinOps) review. It supplies
+# NO extra context — every one of the 20 topics is graded purely from the
+# repository evidence the evaluator discovers on its own.
+#
+# To use it in a real repo, copy this file to that repo's root as:
+#   <your-repo>/skill-config/avoid-cloud-cost-config.yaml
+#
+# Everything below is optional and intentionally left blank/omitted:
+#   display-name  -> falls back to the repo folder name
+#   prompts       -> no per-topic hints; pure evidence-based grading
+# ============================================================================
+
+# Human-friendly project / repo name used in report titles and metadata.
+# Empty => the evaluator falls back to the repo folder name.
+display-name: ""
+
+# No per-prompt context. (The `prompts:` map is omitted entirely — zero input.)

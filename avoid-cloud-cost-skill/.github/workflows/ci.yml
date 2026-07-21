@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['18.x', '20.x', '22.x']
+    defaults:
+      run:
+        working-directory: avoid-cloud-cost-skill
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Syntax check
+        run: node --check index.js
+
+      - name: Verify exactly 21 prompts
+        run: node index.js --list-prompts
+
+      - name: Verify bundled stylesheet resolves
+        run: node index.js --read-style-css > /dev/null
+
+      - name: Run tests
+        run: npm test

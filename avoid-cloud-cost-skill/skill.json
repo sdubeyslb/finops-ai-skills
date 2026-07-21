@@ -1,0 +1,81 @@
+{
+  "name": "avoid-cloud-cost--skill",
+  "title": "Design-for-Cost (FinOps) Evaluator",
+  "description": "Evidence-based FinOps / cloud-cost-optimisation review of each opted-in repository (gated by `skill-config/avoid-cloud-cost-config.yaml` — a `skill-config/` folder at the repo root). The review criteria are split into one Markdown prompt per topic under `prompts/` (`FINOPS-00-Shared-Context.md` plus the 20 cost topics `FINOPS-01`…`FINOPS-20`, covering repository structure, config, compute, observability, resource lifecycle, storage, database, network, Kubernetes, scalability, cloud consumption, and architectural anti-patterns); the per-repo config's `prompts:` map supplies per-topic `additional_context` + `inputs` (keyed by prompt filename) that the evaluator treats as authoritative repo facts. Each topic is graded 1–5 on the canonical `FINOPS-00` rubric; the root-level `Cost-Avoidance-Scorecard.md` gathers every graded topic equal-weight into a single Cost Avoidance Score (1–5, 5 = leanest) mapped to the maturity bands. Produces TWO side-by-side artefacts per repo: a fully self-contained HTML report (`design_for_cost.html`, the bundled stylesheet embedded inline, system fonts only, no images, no embedded fonts) AND a machine-readable `design_for_cost.json` with the same findings, per-prompt scorecard, the unified Cost Avoidance Score, and citations. The palette excludes pure black (`#000000`) and any purple / violet hue. Every finding cites a `file:line` in the repo; topics without evidence are explicitly marked Not Evident.",
+  "version": "1.0.0",
+  "author": "sdubeyslb",
+  "license": "MIT",
+  "keywords": [
+    "design-for-cost",
+    "finops",
+    "cost-optimization",
+    "cloud-cost",
+    "audit",
+    "autoscaling",
+    "tagging",
+    "iac",
+    "feature-flags",
+    "self-contained-html",
+    "json-report",
+    "config-opt-in",
+    "no-images"
+  ],
+  "prompt": "SKILL.md",
+  "commands": [
+    {
+      "name": "scan-repos",
+      "title": "Scan for opted-in repos",
+      "description": "Scans the current working directory for repositories, parses each `skill-config/avoid-cloud-cost-config.yaml`, and emits deterministic JSON with `included[]` vs `excluded[]` lists. Repos without the config file (or whose `skill-config/` folder is missing) are excluded.",
+      "run": "node index.js --scan-repos"
+    },
+    {
+      "name": "list-prompts",
+      "title": "List the per-topic prompts",
+      "description": "Lists the `prompts/FINOPS-*.md` files (FINOPS-00 shared context plus the 20 cost topics FINOPS-01…FINOPS-20) as JSON.",
+      "run": "node index.js --list-prompts"
+    },
+    {
+      "name": "read-prompts",
+      "title": "Print the authoritative FinOps prompts",
+      "description": "Prints every `prompts/FINOPS-*.md` concatenated in order, appending each topic's `additional_context` + `inputs` from the target repo's `skill-config/avoid-cloud-cost-config.yaml`. Pass `--repo=<path>` to target a specific repo root.",
+      "run": "node index.js --read-prompts"
+    },
+    {
+      "name": "read-config",
+      "title": "Inspect the resolved per-repo config",
+      "description": "Reads the target repo's `skill-config/avoid-cloud-cost-config.yaml` and emits JSON with the resolved displayName, displayNameSource, and per-prompt config entries.",
+      "run": "node index.js --read-config"
+    },
+    {
+      "name": "read-style-css",
+      "title": "Print the bundled stylesheet",
+      "description": "Prints the skill's bundled `assets/style.css` to stdout for inline embedding in the HTML report.",
+      "run": "node index.js --read-style-css"
+    },
+    {
+      "name": "setup",
+      "title": "Scaffold output directory",
+      "description": "Creates `outcome/design_for_cost/[<repo>/]` in the current project. Removes any stray `.css` / `.md` / font / image files or legacy `.scan-*.json` evidence inventories left behind by older skill versions so the output contract (HTML + JSON only) stays clean.",
+      "run": "node index.js --setup"
+    },
+    {
+      "name": "validate",
+      "title": "Validate output directory",
+      "description": "Checks that `outcome/design_for_cost/[<repo>/]` exists and contains only `.html` + `.json` files.",
+      "run": "node index.js --validate"
+    },
+    {
+      "name": "report",
+      "title": "Generate inventory report",
+      "description": "Inventories the `.html` / `.json` files in `outcome/design_for_cost/[<repo>/]` and writes a JSON inventory report; flags any stray files.",
+      "run": "node index.js"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sdubeyslb/finops-ai-skills"
+  },
+  "requirements": {
+    "node": ">=16.0.0"
+  }
+}

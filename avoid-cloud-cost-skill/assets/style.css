@@ -1,0 +1,112 @@
+/* ==========================================================================
+ * avoid-cloud-cost-skill — bundled report stylesheet (self-contained)
+ * --------------------------------------------------------------------------
+ * Embedded INLINE inside a single <style> block in the generated HTML report.
+ * No external stylesheet, no images, no embedded fonts — system fonts only.
+ * Themed after Facebook's design language (FB blue, light-gray page, white
+ * rounded cards). Excludes pure black and any purple / violet hue.
+ * Originally authored for this project; distributed under the MIT License.
+ * ========================================================================== */
+
+:root {
+  --bg:           #f0f2f5;   /* Facebook page background (light gray) */
+  --surface:      #ffffff;   /* white card / section background */
+  --surface-2:    #f0f2f5;   /* alt card / table header background */
+  --text:         #1c1e21;   /* Facebook primary text (near-black, NOT #000) */
+  --text-muted:   #65676b;   /* Facebook secondary text */
+  --border:       #ced0d4;   /* Facebook divider / card border */
+  --accent:       #1877f2;   /* Facebook blue — section headers, links */
+  --accent-2:     #166fe5;   /* Facebook blue (darker/hover) */
+
+  /* severity */
+  --sev-low:      #31a24c;   /* Facebook green */
+  --sev-medium:   #b26a00;   /* accessible amber */
+  --sev-high:     #c4460a;   /* burnt orange */
+  --sev-blocker:  #c42b1c;   /* Facebook red (accessible) */
+  --sev-not-evident: #8a8d91;/* Facebook gray */
+
+  /* maturity chip */
+  --maturity:     #1877f2;   /* Facebook blue */
+
+  /* reconciliation status pills (re-run diff) */
+  --status-new:      #1877f2; /* Facebook blue — first seen this run */
+  --status-carried:  #65676b; /* Facebook gray — present in both runs */
+  --status-reopened: #b26a00; /* amber — was fixed, has regressed */
+  --status-fixed:    #31a24c; /* Facebook green — resolved since last run */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0; padding: 2rem;
+  color: var(--text); background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+               Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  line-height: 1.55;
+}
+
+main { max-width: 1200px; margin: 0 auto; }
+
+h1, h2, h3 { color: var(--accent); margin-top: 0; font-weight: 700; letter-spacing: -0.01em; }
+h1 { font-size: 1.7rem; }
+h2 { font-size: 1.35rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; margin-top: 2rem; }
+h3 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+
+a { color: var(--accent); }
+a:hover { color: var(--accent-2); }
+
+/* Facebook-style cards: white surface, rounded corners, subtle shadow */
+.metadata, .dfc-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0;
+  box-shadow: 0 1px 2px rgba(28, 30, 33, 0.12);
+}
+.dfc-section { break-inside: avoid; }
+
+table.findings { border-collapse: collapse; width: 100%; font-size: 0.9rem; margin: 0.6rem 0; }
+table.findings th, table.findings td {
+  border: 1px solid var(--border); padding: 0.45rem 0.6rem;
+  text-align: left; vertical-align: top;
+}
+table.findings th { background: var(--surface-2); }
+
+code {
+  background: var(--surface-2); padding: 1px 4px; border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem;
+}
+
+.pill {
+  display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 600; color: #ffffff;
+  letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+}
+.pill.low         { background: var(--sev-low); }
+.pill.medium      { background: var(--sev-medium); }
+.pill.high        { background: var(--sev-high); }
+.pill.blocker     { background: var(--sev-blocker); }
+.pill.not-evident { background: var(--sev-not-evident); }
+
+/* reconciliation status pills */
+.pill.status-new      { background: var(--status-new); }
+.pill.status-carried  { background: var(--status-carried); }
+.pill.status-reopened { background: var(--status-reopened); }
+.pill.status-fixed    { background: var(--status-fixed); }
+tr.row-fixed td       { color: var(--text-muted); }
+tr.row-fixed td:first-child { text-decoration: line-through; }
+
+.recon-note {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.6rem 0;
+  font-size: 0.88rem; color: var(--text-muted);
+}
+
+.maturity-score {
+  display: inline-block; min-width: 64px; text-align: center;
+  background: var(--maturity); color: #ffffff;
+  padding: 6px 14px; font-size: 1.1rem; font-weight: 700; border-radius: 6px;
+}
+
+.dfc-footer {
+  margin-top: 2rem; padding-top: 0.8rem; border-top: 1px solid var(--border);
+  color: var(--text-muted); font-size: 0.85rem; text-align: center;
+}

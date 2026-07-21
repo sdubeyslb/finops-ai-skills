@@ -1,0 +1,48 @@
+{
+  "name": "avoid-cloud-cost--skill",
+  "version": "1.0.0",
+  "description": "Evidence-based Design-for-Cost / FinOps review of any opted-in software repository. Multi-repo opt-in via `skill-config/avoid-cloud-cost-config.yaml`, whose `prompts:` map feeds per-topic `additional_context` + `inputs` into the topic prompts under `prompts/` (`FINOPS-00-Shared-Context.md` plus the 20 cost topics `FINOPS-01`…`FINOPS-20`). Each topic is graded 1–5 on the canonical `FINOPS-00` rubric; the root-level `Cost-Avoidance-Scorecard.md` gathers every graded topic equal-weight into a single Cost Avoidance Score (1–5, 5 = leanest). Per opted-in repo, emits a fully self-contained HTML report (bundled stylesheet embedded inline, system fonts only, no images) plus an equivalent JSON. Palette excludes pure black and purple / violet hues.",
+  "main": "index.js",
+  "bin": {
+    "avoid-cloud-cost--skill": "index.js"
+  },
+  "scripts": {
+    "report": "node index.js",
+    "setup": "node index.js --setup",
+    "validate": "node index.js --validate",
+    "scan-repos": "node index.js --scan-repos",
+    "list-prompts": "node index.js --list-prompts",
+    "read-prompts": "node index.js --read-prompts",
+    "read-config": "node index.js --read-config",
+    "read-style-css": "node index.js --read-style-css",
+    "test": "node --test"
+  },
+  "keywords": [
+    "design-for-cost",
+    "finops",
+    "cost-optimization",
+    "cloud-cost",
+    "audit",
+    "autoscaling",
+    "tagging",
+    "iac",
+    "feature-flags",
+    "self-contained-html",
+    "json-report",
+    "config-opt-in",
+    "no-images"
+  ],
+  "author": "sdubeyslb",
+  "license": "MIT",
+  "homepage": "https://github.com/sdubeyslb/finops-ai-skills#readme",
+  "bugs": {
+    "url": "https://github.com/sdubeyslb/finops-ai-skills/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdubeyslb/finops-ai-skills.git"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

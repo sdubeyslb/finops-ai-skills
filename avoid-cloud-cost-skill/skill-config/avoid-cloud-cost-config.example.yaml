@@ -1,0 +1,267 @@
+# ============================================================================
+# avoid-cloud-cost — FULL EXAMPLE config (lots of extra context)
+# ============================================================================
+# A richly-populated config showing every knob the evaluator understands. Copy
+# to a repo root as <your-repo>/skill-config/avoid-cloud-cost-config.yaml and
+# prune to what actually applies.
+#
+# How the evaluator uses this file:
+#   display-name          -> report title / metadata (falls back to folder name)
+#   additional-context    -> legacy flat scalar; attached to the shared-context
+#                            prompt (FINOPS-00), applies to the whole review
+#   prompts.<STEM>.additional_context -> free-text hints for ONE topic; the key
+#                            MUST match a prompts/FINOPS-*.md filename (no .md)
+#   prompts.<STEM>.inputs -> structured facts the evaluator treats as
+#                            AUTHORITATIVE repo truth (not guesses)
+#
+# Fictional subject: "Payments Platform" — an Azure + AKS microservice estate.
+# ============================================================================
+
+display-name: "Payments Platform (prod)"
+
+# Legacy flat scalar — whole-review context, attached to FINOPS-00.
+additional-context: |
+  Regulated payments workload (PCI-DSS scope). Runs on Azure: AKS for services,
+  Azure SQL for the ledger, Service Bus for async, Blob Storage for statements.
+  Cost owner is the Platform team; FinOps reviews run quarterly. Non-prod
+  environments (dev/test/staging) must NEVER use prod-grade SKUs.
+
+prompts:
+
+  # --- Whole-review shared context (also settable here as structured inputs) ---
+  "FINOPS-00-Shared-Context":
+    additional_context: |
+      Treat "non-prod" as dev, test and staging. The target is a 30% run-rate
+      reduction over two quarters without breaching the ledger's 99.95% SLO.
+    inputs:
+      cloud_provider: "Azure"
+      primary_regions:
+        - westeurope
+        - northeurope
+      environments:
+        - dev
+        - test
+        - staging
+        - prod
+      monthly_cloud_spend_usd: 148000
+      finops_review_cadence: "quarterly"
+
+  # --- §1 Repository Structure ---
+  "FINOPS-01-Repository-Structure":
+    additional_context: |
+      Monorepo: /services/* (Node + .NET), /infra (Terraform), /charts (Helm).
+      Shared libraries live under /packages and are versioned independently.
+    inputs:
+      layout: "monorepo"
+      iac_path: "infra/"
+      services_path: "services/"
+
+  # --- §2 Configuration Management ---
+  "FINOPS-02-Configuration-Management":
+    additional_context: |
+      Config is per-environment via Azure App Configuration + Key Vault refs.
+      Any hardcoded connection string, endpoint, or instance size is a defect.
+    inputs:
+      config_source: "Azure App Configuration"
+      secrets_store: "Azure Key Vault"
+      per_environment: true
+
+  # --- §3 Autoscaling & Infrastructure Indicators ---
+  "FINOPS-03-Autoscaling-Infrastructure-Indicators":
+    additional_context: |
+      Baseline capacity is reserved; bursty batch runs on Spot node pools and
+      must scale to zero out of hours. Fixed replica counts are an anti-pattern.
+    inputs:
+      autoscaler: "KEDA on Service Bus queue depth"
+      hpa_enabled: true
+      scale_to_zero: true
+      spot_node_pools:
+        - batch
+        - reporting
+
+  # --- §4 Cost-Sensitive Defaults ---
+  "FINOPS-04-Cost-Sensitive-Defaults":
+    additional_context: |
+      Non-prod must default to burstable B-series VMs and Standard_LRS storage.
+      Premium SKUs in dev/test/staging are flagged High severity.
+    inputs:
+      nonprod_vm_family: "B-series (burstable)"
+      prod_vm_family: "D-series v5"
+      default_storage_sku: "Standard_LRS"
+      premium_allowed_in_nonprod: false
+
+  # --- §5 Feature Flags ---
+  "FINOPS-05-Feature-Flags":
+    additional_context: |
+      LaunchDarkly gates expensive code paths (fraud-scoring ML, PDF rendering).
+      Cost-heavy features should be flag-guarded and default-off in non-prod.
+    inputs:
+      flag_provider: "LaunchDarkly"
+      cost_gated_flags:
+        - fraud-ml-scoring
+        - statement-pdf-render
+
+  # --- §6 Compute & API Processing ---
+  "FINOPS-06-Compute-and-API-Processing":
+    additional_context: |
+      Reconciliation should be event-driven off Service Bus, NOT polling. Any
+      paid third-party API call inside a loop must have rate limiting + a
+      circuit breaker. Watch for N+1 calls to the FX rates provider.
+    inputs:
+      paid_apis:
+        - "FX rates (Fixer)"
+        - "sanctions screening (Refinitiv)"
+      processing_model: "event-driven preferred"
+
+  # --- §7 Observability & Logging ---
+  "FINOPS-07-Observability-and-Logging":
+    additional_context: |
+      Prod log level is `info`; `debug`/`verbose` in prod is a defect. Log
+      Analytics retention is 30 days hot then archive. Sampling on high-volume
+      request logs is expected.
+    inputs:
+      log_platform: "Azure Monitor / Log Analytics"
+      prod_log_level: "info"
+      retention_days: 30
+      sampling_enabled: true
+
+  # --- §8 Resource Lifecycle & Handling ---
+  "FINOPS-08-Resource-Lifecycle-and-Handling":
+    additional_context: |
+      DB connections come from a bounded pool (max 20/instance). Look for
+      leaked connections, missing `dispose`/`using`, and unclosed HTTP clients.
+    inputs:
+      db_pool_max: 20
+      http_client_reuse: "singleton HttpClient expected"
+
+  # --- §9 Dependencies ---
+  "FINOPS-09-Dependencies":
+    additional_context: |
+      Prefer lightweight libs; flag heavyweight transitive deps that inflate
+      cold-start (e.g. full AWS SDK when only one client is used).
+    inputs:
+      package_managers:
+        - npm
+        - nuget
+
+  # --- §10 CI/CD ---
+  "FINOPS-10-CICD":
+    additional_context: |
+      GitHub Actions. PR pipelines must not spin up long-lived cloud resources;
+      ephemeral test infra must be torn down and tagged. Keep the build matrix
+      lean — no full OS/runtime matrix on every PR.
+    inputs:
+      ci_platform: "GitHub Actions"
+      ephemeral_env_teardown: "required"
+
+  # --- §11 Infrastructure as Code (IaC) ---
+  "FINOPS-11-Infrastructure-as-Code":
+    additional_context: |
+      Terraform with per-env tfvars. Instance size / count / SKU MUST be
+      variables, never hardcoded. Remote state in Azure Storage.
+    inputs:
+      iac_tool: "Terraform"
+      state_backend: "azurerm"
+      sizes_parameterised: true
+
+  # --- §12 Tagging & Metadata ---
+  "FINOPS-12-Tagging-Metadata":
+    additional_context: |
+      Mandatory tags on every resource: Environment, CostCenter, Owner,
+      Project, DataClass. Untagged resources cannot be charged back.
+    inputs:
+      required_tags:
+        - Environment
+        - CostCenter
+        - Owner
+        - Project
+        - DataClass
+      enforcement: "Azure Policy (deny on missing tag)"
+
+  # --- §13 Storage ---
+  "FINOPS-13-Storage":
+    additional_context: |
+      Statement PDFs go to Blob with a lifecycle rule: Hot 30d -> Cool 90d ->
+      Archive 1y -> delete 7y (regulatory). Flag missing lifecycle rules and
+      soft-delete bloat.
+    inputs:
+      lifecycle_rules: true
+      tiers:
+        - Hot
+        - Cool
+        - Archive
+      legal_retention_years: 7
+
+  # --- §14 Security vs Cost Balance ---
+  "FINOPS-14-Security-vs-Cost-Balance":
+    additional_context: |
+      PCI scope justifies WAF, private endpoints and CMK on prod. The SAME
+      controls in dev/test are usually over-provisioning — call that out.
+    inputs:
+      prod_controls:
+        - WAF
+        - Private Endpoints
+        - Customer-Managed Keys
+      nonprod_controls_should_be: "minimal"
+
+  # --- §15 Database ---
+  "FINOPS-15-Database":
+    additional_context: |
+      Azure SQL: prod is Business Critical (Gen5, 8 vCore); non-prod should be
+      General Purpose Serverless with auto-pause. Flag oversized non-prod tiers
+      and missing auto-pause.
+    inputs:
+      prod_tier: "Business Critical Gen5 8vCore"
+      nonprod_tier: "General Purpose Serverless (auto-pause)"
+      auto_pause_nonprod: true
+
+  # --- §16 Network ---
+  "FINOPS-16-Network":
+    additional_context: |
+      Watch for cross-region/zone data transfer, idle public IPs, unused NAT
+      gateways, and always-on premium load balancers in non-prod.
+    inputs:
+      egress_sensitive: true
+      nat_gateway: "prod only"
+
+  # --- §17 Kubernetes & Containers ---
+  "FINOPS-17-Kubernetes-and-Containers":
+    additional_context: |
+      Every Deployment MUST set requests/limits. Flag missing resource requests,
+      overcommitted limits, and node pools without cluster-autoscaler.
+    inputs:
+      platform: "AKS"
+      requests_limits_required: true
+      cluster_autoscaler: true
+
+  # --- §18 Scalability ---
+  "FINOPS-18-Scalability":
+    additional_context: |
+      Traffic is diurnal with a 4x weekday-daytime peak. Design should scale
+      down aggressively overnight; steady-state over-provisioning is waste.
+    inputs:
+      traffic_pattern: "diurnal, 4x weekday peak"
+
+  # --- §19 Cloud Service Consumption ---
+  "FINOPS-19-Cloud-Service-Consumption":
+    additional_context: |
+      Prefer managed/consumption tiers where idle time is high (Service Bus,
+      Functions Consumption). Flag always-on Premium plans with low utilisation.
+    inputs:
+      serverless_first: true
+      reserved_instances: "prod baseline only"
+
+  # --- §20 Architectural Cost Anti-Patterns ---
+  "FINOPS-20-Architectural-Cost-AntiPatterns":
+    additional_context: |
+      Known smells to hunt for: polling instead of events, chatty synchronous
+      service-to-service calls, no caching on the FX rates lookup, and
+      per-request container cold starts on the PDF renderer.
+    inputs:
+      caching_expected_on:
+        - "FX rates"
+        - "sanctions lists"
+      known_antipatterns:
+        - polling-over-events
+        - missing-cache
+        - chatty-sync-calls
